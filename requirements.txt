@@ -4,3 +4,6 @@
 radon
 coverage
 pytest
+requests 
+beautifulsoup4 
+lxml 

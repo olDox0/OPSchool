@@ -1,49 +1,53 @@
-#atualizado em 2025/09/27-Versão 1.4. Função estável. Introduz dicionários para estruturar dados com pares chave-valor. Melhoria: Nenhuma neste estágio.
+#atualizado em 2025/09/27-Versão 2.2. Funcionalidade. Adiciona BeautifulSoup para parsear HTML e extrair dados. Melhoria: Extrair mais do que apenas o título.
 """
-Arquivo principal da olDox222 Python School (OPSchool).
+Módulo 3: Lidando com a Web e APIs.
 
-Nesta versão, introduzimos os dicionários para estruturar nossos dados
-de forma mais organizada, usando pares de chave e valor.
+Nesta versão, usamos a biblioteca BeautifulSoup para analisar o HTML
+bruto e extrair informações específicas, como o título da página.
 """
+import requests
+from bs4 import BeautifulSoup
+
+def fetch_and_parse_website(url):
+    """
+    Busca e analisa o conteúdo de uma URL para extrair o título.
+
+    Args:
+        url (str): A URL do site.
+
+    Returns:
+        str: O título da página ou uma mensagem de erro.
+    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        # Criamos um objeto BeautifulSoup para analisar o HTML.
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # Acessamos a tag <title> e extraímos seu texto.
+        # Usamos .get_text() para limpar qualquer tag HTML interna.
+        title = soup.find('title').get_text()
+        return title
+    else:
+        return f"Falha ao buscar a página. Código de status: {response.status_code}"
 
 def run_school():
     """
-    Função principal que executa a lógica central da escola.
+    Função principal que agora executa nossa lógica de busca e análise.
     """
-    # --- Estruturas de Dados: O Dicionário ---
-    # Um dicionário é criado com chaves {} e armazena pares chave: valor.
-    # É perfeito para descrever as propriedades de um único objeto.
-    course_info = {
-        "name": "olDox222 Python School",
-        "version": 1.4,
-        "is_active": True,
-        "modules": [
-            "Módulo 0: O Ponto de Partida",
-            "Módulo 1: A Caixa de Ferramentas",
-            "Módulo 2: O Salto para a Eficiência",
-            "Módulo 3: Lidando com a Web e APIs"
-        ]
-    }
+    target_url = "https://pt.wikipedia.org/wiki/Python_(linguagem_de_programa%C3%A7%C3%A3o)"
     
-    # --- Tomando Decisões e Acessando Dados ---
+    print(f"Buscando e analisando: {target_url}")
+    print("----------------------------------------")
     
-    # Acessamos os valores do dicionário usando a chave entre colchetes [].
-    if course_info["is_active"]:
-        print(f"Bem-vindo(a) à {course_info['name']}!")
-        print(f"Versão atual: {course_info['version']}")
-        print("----------------------------------------")
-        
-        # Acessamos a lista de módulos que está DENTRO do dicionário.
-        print("Conteúdo do Curso:")
-        for module in course_info["modules"]:
-            print(f"- {module}")
-            
-    else:
-        print(f"O curso {course_info['name']} está em desenvolvimento. Volte em breve!")
+    page_title = fetch_and_parse_website(target_url)
+    
+    print(f"O título da página é: {page_title}")
 
 
-# Este bloco de código é uma boa prática fundamental em Python.
-# Ele verifica se o arquivo está sendo executado diretamente pelo usuário.
-# Se estiver, ele chama a nossa função principal.
 if __name__ == "__main__":
     run_school()
