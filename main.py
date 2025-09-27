@@ -1,9 +1,9 @@
-#atualizado em 2025/09/27-Versão 1.2. Função estável. Introduz o conceito de estruturas de controle (if/else). Melhoria: Nenhuma neste estágio.
+#atualizado em 2025/09/27-Versão 1.3. Função estável. Introduz listas para coleções de dados e loops 'for' para iteração. Melhoria: Nenhuma neste estágio.
 """
 Arquivo principal da olDox222 Python School (OPSchool).
 
-Nesta versão, introduzimos as estruturas de controle if/else,
-permitindo que o programa tome decisões com base nos valores das variáveis.
+Nesta versão, introduzimos as listas para armazenar coleções de dados
+e os loops 'for' para executar ações repetitivas sobre esses dados.
 """
 
 def run_school():
@@ -11,27 +11,34 @@ def run_school():
     Função principal que executa a lógica central da escola.
     """
     # --- Variáveis e Tipos de Dados ---
-    welcome_message = "Olá, Mundo! Bem-vindo(a) à olDox222 Python School."
-    start_year = 2025
-    course_version = 1.2
+    course_name = "olDox222 Python School"
     is_active = True
     
-    # --- Tomando Decisões ---
+    # --- Estruturas de Dados: A Lista ---
+    # Uma lista é criada com colchetes [] e armazena múltiplos itens.
+    # Aqui, guardamos os nomes dos módulos do nosso curso.
+    course_modules = [
+        "Módulo 0: O Ponto de Partida",
+        "Módulo 1: A Caixa de Ferramentas",
+        "Módulo 2: O Salto para a Eficiência",
+        "Módulo 3: Lidando com a Web e APIs"
+    ]
     
-    # A instrução 'if' verifica se a condição é Verdadeira (True).
-    # Como a variável 'is_active' é True, o código dentro deste bloco será executado.
+    # --- Tomando Decisões ---
     if is_active:
-        print(welcome_message)
-        print(f"Este projeto começou no ano de {start_year}.")
-        print(f"Versão atual do curso: {course_version}")
+        print(f"Bem-vindo(a) à {course_name}!")
+        print("----------------------------------------")
         
-        # Podemos aninhar 'ifs' para decisões mais complexas.
-        if course_version > 1.0:
-            print("O curso já recebeu suas primeiras atualizações!")
+        # --- Repetindo Tarefas: O Loop 'for' ---
+        # Este loop irá passar por cada item da lista 'course_modules'.
+        # A cada "passo", o item atual será colocado na variável 'module'.
+        print("Conteúdo do Curso:")
+        for module in course_modules:
+            # O código indentado aqui será executado para cada módulo.
+            print(f"- {module}")
             
-    # A instrução 'else' define o que acontecerá se a condição do 'if' for Falsa (False).
     else:
-        print("A olDox222 Python School está em desenvolvimento. Volte em breve!")
+        print(f"A {course_name} está em desenvolvimento. Volte em breve!")
 
 
 # Este bloco de código é uma boa prática fundamental em Python.
