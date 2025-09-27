@@ -1,53 +1,37 @@
-#atualizado em 2025/09/27-Versão 2.2. Funcionalidade. Adiciona BeautifulSoup para parsear HTML e extrair dados. Melhoria: Extrair mais do que apenas o título.
+#atualizado em 2025/09/27-Versão 4.0. Funcionalidade. Transforma o script em uma CLI interativa com 'click'. Melhoria: Adicionar mais opções de comando.
 """
-Módulo 3: Lidando com a Web e APIs.
+Arquivo principal e ponto de entrada da olDox222 Python School (OPSchool).
 
-Nesta versão, usamos a biblioteca BeautifulSoup para analisar o HTML
-bruto e extrair informações específicas, como o título da página.
+Agora é uma ferramenta de linha de comando (CLI) que aceita uma URL
+como argumento para análise.
 """
-import requests
-from bs4 import BeautifulSoup
+import click
+from web_scraper import fetch_and_parse_website
 
-def fetch_and_parse_website(url):
+# O decorador @click.command() transforma a função 'cli' em um comando executável.
+@click.command()
+# O decorador @click.argument(...) define que esperamos um argumento chamado 'url'.
+@click.argument('url')
+def cli(url):
     """
-    Busca e analisa o conteúdo de uma URL para extrair o título.
-
-    Args:
-        url (str): A URL do site.
-
-    Returns:
-        str: O título da página ou uma mensagem de erro.
+    Uma ferramenta de linha de comando que busca e analisa o conteúdo de uma URL.
     """
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+    click.echo(f"Buscando e analisando: {url}")
+    click.echo("----------------------------------------")
     
-    response = requests.get(url, headers=headers)
+    title, paragraphs = fetch_and_parse_website(url)
     
-    if response.status_code == 200:
-        # Criamos um objeto BeautifulSoup para analisar o HTML.
-        soup = BeautifulSoup(response.text, 'lxml')
+    if paragraphs:
+        click.echo(click.style(f"Título: {title}\n", fg='cyan', bold=True))
+        click.echo("--- Primeiros 3 Parágrafos ---")
         
-        # Acessamos a tag <title> e extraímos seu texto.
-        # Usamos .get_text() para limpar qualquer tag HTML interna.
-        title = soup.find('title').get_text()
-        return title
+        for p in paragraphs[:3]:
+            click.echo(p.strip() + "\n")
     else:
-        return f"Falha ao buscar a página. Código de status: {response.status_code}"
-
-def run_school():
-    """
-    Função principal que agora executa nossa lógica de busca e análise.
-    """
-    target_url = "https://pt.wikipedia.org/wiki/Python_(linguagem_de_programa%C3%A7%C3%A3o)"
-    
-    print(f"Buscando e analisando: {target_url}")
-    print("----------------------------------------")
-    
-    page_title = fetch_and_parse_website(target_url)
-    
-    print(f"O título da página é: {page_title}")
+        # Usamos click.style para colorir a saída de erro.
+        click.echo(click.style(title, fg='red'))
 
 
+# A 'cli' agora é nosso ponto de entrada.
 if __name__ == "__main__":
-    run_school()
+    cli()

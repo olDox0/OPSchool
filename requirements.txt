@@ -7,3 +7,4 @@ pytest
 requests 
 beautifulsoup4 
 lxml 
+click 
