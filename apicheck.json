@@ -1,0 +1,1 @@
+{ "contracts": [ { "id": "Secure-Requests-GET", "description": "Regras para requisições GET seguras e robustas.", "function": "requests.get", "rules": { "required_params": [ "timeout" ], "forbidden_params": { "verify": false }, "enforce_exception_on_fail": true } } ] }
