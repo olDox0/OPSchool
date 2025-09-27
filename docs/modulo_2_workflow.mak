@@ -33,3 +33,11 @@ O `doxoade` oferece um "commit seguro". Ele age como um supervisor de qualidade.
 **Comando:**
 ```bash
 doxoade save "Sua mensagem de commit aqui"
+
+### Sincronizando seu Trabalho com `doxoade sync`
+
+Após salvar suas alterações localmente com `doxoade save`, seu computador está atualizado, mas o repositório online (no GitHub, por exemplo) ainda não sabe das suas mudanças. O comando `doxoade sync` resolve isso.
+
+**Comando:**
+```bash
+doxoade sync
