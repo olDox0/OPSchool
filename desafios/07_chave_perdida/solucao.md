@@ -25,3 +25,12 @@ def get_user_config(config):
     # O .get() tenta pegar 'usuario'. Se falhar, tenta 'user_name'.
     # Se ambos falharem, retorna "Desconhecido".
     return config.get('usuario', config.get('user_name', "Desconhecido"))
+	
+Solução 2: Acessar de Forma Segura (Método .get())
+Uma maneira mais robusta e "Pythônica" de acessar dicionários é usar o método .get(). Ele nunca causa um KeyError. Se a chave não existir, ele retorna None (ou um valor padrão que você pode especificar).
+
+def get_user_config(config):
+    # O .get() tenta pegar 'usuario'. Se falhar, tenta 'user_name'.
+    # Se ambos falharem, retorna "Desconhecido".
+    return config.get('usuario', config.get('user_name', "Desconhecido"))
+	
