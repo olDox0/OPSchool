@@ -1,3 +1,4 @@
 [doxoade]
-source_dir = OPSchool
-
+source_dir = .
+ignore = 
+    desafios/
