@@ -1,15 +1,33 @@
-#atualizado em 2025/10/01-Versão 6.8. Reversão. Remove a tentativa de syntax highlighting para estabilizar a aplicação.
+#atualizado em 2025/10/02-Versão 7.8. Correção. Corrige a função de conversão para Markdown e o carregamento de arquivos.
+import re, os, io
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeViewLabel
 from kivy.clock import Clock
-import io
 from contextlib import redirect_stdout
-import os
+from pygments.lexers import PythonLexer
+
+def markdown_to_bbcode(md_text):
+    """Converte texto Markdown simples para o formato BBCode do Kivy."""
+    # Títulos
+    md_text = re.sub(r'^##\s*(.*)', r'[b][size=20]\1[/size][/b]', md_text, flags=re.MULTILINE)
+    md_text = re.sub(r'^#\s*(.*)', r'[b][size=24]\1[/size][/b]', md_text, flags=re.MULTILINE)
+    
+    # Negrito (com asteriscos escapados)
+    md_text = re.sub(r'\*\*(.*?)\*\*', r'[b]\1[/b]', md_text)
+    
+    # Itálico (com asterisco escapado)
+    md_text = re.sub(r'\*(.*?)\*', r'[i]\1[/i]', md_text)
+    
+    # Código
+    md_text = re.sub(r'`(.*?)`', r'[font=RobotoMono-Regular][color=c0c0c0]\1[/color][/font]', md_text)
+    return md_text
 
 class OPSchoolLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # Atribui o objeto lexer ao CodeInput DEPOIS que ele foi criado.
+        self.ids.code_input.lexer = PythonLexer()
         Clock.schedule_once(self.populate_lesson_tree)
 
     def populate_lesson_tree(self, dt=0):
@@ -33,20 +51,23 @@ class OPSchoolLayout(BoxLayout):
         parent_text = node.parent_node.text
         lesson_text = node.text
         
-        self.ids.lesson_content.text = "Selecione uma lição ou desafio."
-        self.ids.code_input.text = "# O código do desafio aparecerá aqui."
+        # --- Reseta os painéis ---
+        self.ids.lesson_content.text = "Carregando..."
+        self.ids.code_input.text = "# Selecione um desafio para ver o código."
+        self.ids.solution_content.text = "# A solução só está disponível para desafios."
         
         path_to_instructions = ""
+        
+        # --- CORREÇÃO: Lógica com ELIF ---
         if parent_text == 'Módulos Principais':
             path_to_instructions = os.path.join('docs', lesson_text)
+            self.ids.code_input.text = "# Esta é uma lição teórica. Selecione um desafio para praticar."
+    
         elif parent_text == 'Desafios Práticos':
+            # Define o caminho para as instruções do desafio
             path_to_instructions = os.path.join('desafios', lesson_text, 'INSTRUCOES.md')
             
-        if os.path.exists(path_to_instructions):
-            with open(path_to_instructions, 'r', encoding='utf-8') as f:
-                self.ids.lesson_content.text = f.read()
-
-        if parent_text == 'Desafios Práticos':
+            # Carrega o código do desafio
             challenge_file_map = {
                 '01_ambiente_quebrado': 'programa.py', '02_acesso_negado': 'web_scraper_quebrado.py',
                 '03_funcao_desaparecida': 'app_quebrada.py', '04_refatoracao_incompleta': 'processador_texto.py',
@@ -61,6 +82,25 @@ class OPSchoolLayout(BoxLayout):
                     with open(path_to_code, 'r', encoding='utf-8') as f:
                         self.ids.code_input.text = f.read()
 
+            # Carrega a solução do desafio
+            path_to_solution = os.path.join('desafios', lesson_text, 'solucao.md')
+            if os.path.exists(path_to_solution):
+                with open(path_to_solution, 'r', encoding='utf-8') as f:
+                    self.ids.solution_content.text = f.read()
+
+        # --- Carrega o conteúdo das instruções no final ---
+        if os.path.exists(path_to_instructions):
+            # ABRIMOS COM UTF-8, POIS AGORA GARANTIMOS QUE OS ARQUIVOS ESTÃO CORRETOS
+            with open(path_to_instructions, 'r', encoding='utf-8') as f:
+                self.ids.lesson_content.text = markdown_to_bbcode(f.read())
+        else:
+            self.ids.lesson_content.text = f"Arquivo de instruções não encontrado para '{lesson_text}'."
+        if parent_text == 'Desafios Práticos':
+            path_to_solution = os.path.join('desafios', lesson_text, 'solucao.md')
+            if os.path.exists(path_to_solution):
+                with open(path_to_solution, 'r', encoding='utf-8') as f:
+                    self.ids.solution_content.text = markdown_to_bbcode(f.read())
+               
     def run_code(self):
         code_to_run = self.ids.code_input.text
         output_terminal = self.ids.terminal_output

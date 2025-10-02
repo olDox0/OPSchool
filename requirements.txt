@@ -10,4 +10,4 @@ lxml
 click 
 kivy
 markdown
-Pygments 
+Pygments
