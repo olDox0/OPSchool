@@ -1,4 +1,6 @@
 #atualizado em 2025/10/02-Versão 7.8. Correção. Corrige a função de conversão para Markdown e o carregamento de arquivos.
+import subprocess
+import tempfile
 import re, os, io
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -26,7 +28,7 @@ def markdown_to_bbcode(md_text):
 class OPSchoolLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Atribui o objeto lexer ao CodeInput DEPOIS que ele foi criado.
+        self.current_lesson_path = None # Variável para guardar o contexto
         self.ids.code_input.lexer = PythonLexer()
         Clock.schedule_once(self.populate_lesson_tree)
 
@@ -62,6 +64,8 @@ class OPSchoolLayout(BoxLayout):
         if parent_text == 'Módulos Principais':
             path_to_instructions = os.path.join('docs', lesson_text)
             self.ids.code_input.text = "# Esta é uma lição teórica. Selecione um desafio para praticar."
+            self.current_lesson_path = os.path.dirname(path_to_instructions)
+            self.load_user_notes()
     
         elif parent_text == 'Desafios Práticos':
             # Define o caminho para as instruções do desafio
@@ -100,6 +104,38 @@ class OPSchoolLayout(BoxLayout):
             if os.path.exists(path_to_solution):
                 with open(path_to_solution, 'r', encoding='utf-8') as f:
                     self.ids.solution_content.text = markdown_to_bbcode(f.read())
+                    
+        if path_to_instructions:
+            self.current_lesson_path = os.path.dirname(path_to_instructions)
+            self.load_user_notes() # Carrega as notas da nova lição
+                    
+    def get_notes_path(self):
+        """Retorna o caminho para o arquivo de notas da lição atual."""
+        if self.current_lesson_path:
+            return os.path.join(self.current_lesson_path, 'notas_do_aluno.txt')
+        return None
+
+    def load_user_notes(self):
+        """Carrega as anotações do arquivo para o TextInput."""
+        notes_path = self.get_notes_path()
+        content = 'Selecione uma lição para ver suas anotações.'
+        if notes_path and os.path.exists(notes_path):
+            with open(notes_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        self.ids.user_notes_input.text = content
+
+    def save_user_notes(self):
+        """Salva o conteúdo do TextInput no arquivo de notas."""
+        notes_path = self.get_notes_path()
+        if not notes_path:
+            self.ids.terminal_output.text = "Erro: Nenhuma lição selecionada para salvar anotações."
+            return
+
+        with open(notes_path, 'w', encoding='utf-8') as f:
+            f.write(self.ids.user_notes_input.text)
+        
+        # Feedback para o usuário
+        self.ids.terminal_output.text = "Anotações salvas com sucesso!"
                
     def run_code(self):
         code_to_run = self.ids.code_input.text
@@ -112,6 +148,40 @@ class OPSchoolLayout(BoxLayout):
             output_terminal.text = output if output else "Executado com sucesso (sem saída)."
         except Exception as e:
             output_terminal.text = f"Erro na execução:\n{e}"
+
+    def check_code_with_doxoade(self):
+        """Salva o código em um arquivo temporário e roda doxoade check nele."""
+        code_to_check = self.ids.code_input.text
+        output_terminal = self.ids.terminal_output
+        
+        # Cria um arquivo temporário com a extensão .py
+        with tempfile.NamedTemporaryFile(mode='w+', suffix='.py', delete=False, encoding='utf-8') as temp_file:
+            temp_file.write(code_to_check)
+            temp_filepath = temp_file.name
+            temp_dir = os.path.dirname(temp_filepath)
+
+        try:
+            # --- CORREÇÃO: Passamos o DIRETÓRIO para o doxoade check ---
+            command = ["doxoade", "check", "."] 
+            
+            # Executa o comando a partir do diretório temporário
+            result = subprocess.run(
+                command, 
+                capture_output=True, 
+                text=True, 
+                encoding='utf-8', 
+                shell=True, 
+                cwd=temp_dir 
+            )
+            
+            output = result.stdout + result.stderr
+            output_terminal.text = output if output else "Doxoade: Nenhuma saída."
+        
+        # --- CORREÇÃO: RESTAURE ESTE BLOCO ---
+        finally:
+            # Garante que o arquivo temporário seja sempre deletado
+            if 'temp_filepath' in locals() and os.path.exists(temp_filepath):
+                os.remove(temp_filepath)
 
 class OPSchoolApp(App):
     def build(self):
